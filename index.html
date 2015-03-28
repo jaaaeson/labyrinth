@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<title>College Seeker</title>
+<!-- jQuery -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+<!-- /jQuery -->
+
+<script>
+var school = "Harvard";
+
+$(document).ready(loadNotes(school));
+
+function loadNotes(school) {
+    $("h3").text(school);
+    $("#notes").append(newNoteForm());
+    // get notes from server
+    $.get({
+        dataType: "JSON",
+        url: "getNotes.php",
+        data: {
+            "title": school
+        },
+        success: function(data) {
+            for each (row in data) {
+                addNote(row);
+            }
+        }
+    });
+}
+
+function addNote(row) {
+    // get id assigned by MySQL
+    if (!row.hasOwnProperty('id')) {
+        $.post({
+            dataType: "JSON",
+            url: "postNote.php",
+            data: row,
+            success: function(data) {
+                row = data;
+            }
+        });
+    }
+    // add to list
+    var note = $("<li>", {id: "item" + row['id'], text: row['text']});
+    note.prepend("<img id='flavor' src='"+row['flavor']+".png'>");
+//    note.append(...); - edit and delete buttons
+    $("#newNote").before(note);
+}
+
+function getNote(id) {
+    return $("#note"+id);
+}
+
+function setNoteText(id, content) {
+    getNote(id).text(content);
+}
+
+function setNoteFlavor(id, flavor) {
+    getNote(id).find("img #flavor").attr("src", flavor+".png");
+}
+
+function deleteNote(id) {
+    $("#notes").remove("#note"+id);
+}
+</script>
+
+</head>
+
+<body>
+
+<h3></h3>
+
+<ul id="notes">
+<!-- filled by script -->
+
+<form id="newNote" onsubmit="addNote({'title': school, 'text': content, 'flavor': 'info'">
+<input type="text" name="content" maxlength="300">
+<input type="submit">
+</form>
+
+</ul>
+
+</body>
+
+</html>
